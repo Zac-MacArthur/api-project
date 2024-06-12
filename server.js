@@ -1,6 +1,6 @@
 const express = require('express')
 const app = express()
-const PORT = 8000
+const PORT =  process.env.Port || 8000
 
 const rappers ={ 
     '21 savage': {
