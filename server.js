@@ -1,37 +1,29 @@
 const express = require('express')
 const app = express()
+const MongoClient = require('mongodv').mongoClient
 const PORT =  process.env.Port || 8000
+require('dotenv').config()
 
-const rappers ={ 
-    '21 savage': {
-        'birthname': 'Sheyaa Bin', 
-        'birthLocation': 'London, England', 
-        'age': 29
-    },
-    'chance the rapper':{
-        'age': 29,
-        'birthname': 'chancellor bennett',
-        'birthLocation': 'chicago, illonois',
-    },
-    'unknown':{
-        'age': 0,
-        'birthname': 'unknown',
-        'birthLocation': 'unknown'
-    }
-}
+let db, 
+    dbConnectionStr = process.env.DB_STRING,
+    dbName = 'sample-database-1'
+
+MongoClient.connect(dbConnectionStr, { useUnifiedTopology: true })
+    .then(client => {
+        console.log(`Connected to ${dbName} Database`)
+        db = client.db(dbName)
+    })
+app.set('view engine', 'ejs')
+app.use(express.static('public'))
+app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+
 
 app.get('/', (request, response)=>{
-    response.sendFile(__dirname + '/index.html')
+    db.collection('sample-database-1').find().sort({likes: -1}).toArry()
+    .then(data => {
+        response.render('index.ejs', { info: data })
+    })
+    .catch(error => console.log(error))
 })
 
-app.get('/api/:name', (request, response)=>{
-    const rapperName = request.params.name.toLowerCase()
-    if(rappers[rapperName]){
-        response.json(rappers[rapperName])
-    } else {
-        response.json(rappers['unknown'])
-    }
-})
-app.listen(process.env.Port || PORT, ()=>{
-    console.log(`the server is now running on port ${PORT}`)
-}) 
